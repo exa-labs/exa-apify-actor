@@ -1,0 +1,165 @@
+{
+  "actorSpecification": 1,
+  "fields": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Search query used for this row.",
+        "nullable": true,
+        "example": "Latest research in LLM agents"
+      },
+      "rank": {
+        "type": "integer",
+        "description": "One-based rank of the search result.",
+        "nullable": true,
+        "example": 1
+      },
+      "title": {
+        "type": "string",
+        "description": "Result title.",
+        "nullable": true,
+        "example": "Example result title"
+      },
+      "url": {
+        "type": "string",
+        "description": "Result URL.",
+        "nullable": true,
+        "example": "https://example.com/result"
+      },
+      "id": {
+        "type": "string",
+        "description": "Exa result identifier.",
+        "nullable": true,
+        "example": "https://example.com/result"
+      },
+      "publishedDate": {
+        "type": "string",
+        "description": "Published date returned by Exa.",
+        "nullable": true,
+        "example": "2025-01-15T12:00:00.000Z"
+      },
+      "author": {
+        "type": "string",
+        "description": "Author returned by Exa.",
+        "nullable": true,
+        "example": "Example Author"
+      },
+      "image": {
+        "type": "string",
+        "description": "Representative image URL.",
+        "nullable": true,
+        "example": "https://example.com/image.jpg"
+      },
+      "favicon": {
+        "type": "string",
+        "description": "Favicon URL.",
+        "nullable": true,
+        "example": "https://example.com/favicon.ico"
+      },
+      "highlights": {
+        "type": "array",
+        "description": "Relevant highlights returned by Exa.",
+        "items": {
+          "type": "string"
+        },
+        "nullable": true,
+        "example": ["Example highlight."]
+      },
+      "highlightScores": {
+        "type": "array",
+        "description": "Relevance scores for highlights returned by Exa.",
+        "items": {
+          "type": "number"
+        },
+        "nullable": true,
+        "example": [0.92]
+      },
+      "score": {
+        "type": "number",
+        "description": "Relevance score returned by Exa.",
+        "nullable": true,
+        "example": 0.92
+      },
+      "structuredOutput": {
+        "type": ["object", "string", "array"],
+        "description": "Structured Exa Search output when outputSchema is provided.",
+        "nullable": true,
+        "example": {
+          "summary": "Example structured output."
+        }
+      },
+      "context": {
+        "type": "string",
+        "description": "LLM-ready context string returned by Exa Search.",
+        "nullable": true,
+        "example": "Example context."
+      },
+      "rawResult": {
+        "type": "object",
+        "description": "Raw result object returned by Exa.",
+        "properties": {},
+        "required": [],
+        "additionalProperties": true,
+        "nullable": true,
+        "example": {
+          "title": "Example result title",
+          "url": "https://example.com/result"
+        }
+      }
+    },
+    "required": [],
+    "additionalProperties": true
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "description": "Most useful Exa result fields at a glance.",
+      "transformation": {
+        "fields": ["rank", "title", "url", "publishedDate", "author", "highlights", "highlightScores", "score", "query"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "rank": {
+            "label": "Rank",
+            "format": "number"
+          },
+          "title": {
+            "label": "Title",
+            "format": "text"
+          },
+          "url": {
+            "label": "URL",
+            "format": "link"
+          },
+          "publishedDate": {
+            "label": "Published",
+            "format": "date"
+          },
+          "author": {
+            "label": "Author",
+            "format": "text"
+          },
+          "highlights": {
+            "label": "Highlights",
+            "format": "array"
+          },
+          "highlightScores": {
+            "label": "Highlight scores",
+            "format": "array"
+          },
+          "score": {
+            "label": "Score",
+            "format": "number"
+          },
+          "query": {
+            "label": "Query",
+            "format": "text"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Exa Actor output",
+  "description": "Normalized Exa results are available in the default dataset. The full raw Exa API response is stored in the default key-value store.",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "Results",
+      "description": "Normalized result rows in the default dataset.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    },
+    "fullResponse": {
+      "type": "string",
+      "title": "Full response",
+      "description": "Raw Exa API response stored as JSON.",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT"
+    },
+    "runSummary": {
+      "type": "string",
+      "title": "Run summary",
+      "description": "A compact summary of the Actor run.",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/SUMMARY"
+    }
+  }
+}

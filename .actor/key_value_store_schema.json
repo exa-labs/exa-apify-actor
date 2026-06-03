@@ -1,0 +1,19 @@
+{
+  "actorKeyValueStoreSchemaVersion": 1,
+  "title": "Exa Actor key-value store",
+  "description": "Raw API response and compact run summary.",
+  "collections": {
+    "fullResponse": {
+      "title": "Full response",
+      "description": "Raw Exa API response.",
+      "key": "OUTPUT",
+      "contentTypes": ["application/json"]
+    },
+    "runSummary": {
+      "title": "Run summary",
+      "description": "Compact Actor run summary.",
+      "key": "SUMMARY",
+      "contentTypes": ["application/json"]
+    }
+  }
+}

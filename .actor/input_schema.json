@@ -1,0 +1,106 @@
+{
+  "title": "Exa Search + Contents input",
+  "description": "Search the web with Exa and return highlighted excerpts from each result.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "query": {
+      "title": "Search query",
+      "type": "string",
+      "description": "Natural-language query for Exa Search.",
+      "editor": "textarea",
+      "prefill": "Latest research in LLM agents"
+    },
+    "searchType": {
+      "title": "Search depth",
+      "type": "string",
+      "description": "Use Auto for the default Exa search experience or Deep for broader recall and query expansion.",
+      "editor": "select",
+      "default": "auto",
+      "enum": ["auto", "deep"],
+      "enumTitles": ["Auto", "Deep"]
+    },
+    "numResults": {
+      "title": "Number of results",
+      "type": "integer",
+      "description": "Maximum number of search results to return.",
+      "editor": "number",
+      "default": 10,
+      "minimum": 1,
+      "maximum": 100
+    },
+    "includeDomains": {
+      "title": "Include domains",
+      "type": "array",
+      "description": "Only return results from these domains.",
+      "editor": "stringList",
+      "items": {
+        "type": "string"
+      }
+    },
+    "excludeDomains": {
+      "title": "Exclude domains",
+      "type": "array",
+      "description": "Exclude results from these domains.",
+      "editor": "stringList",
+      "items": {
+        "type": "string"
+      }
+    },
+    "maxCharacters": {
+      "title": "Max context characters",
+      "type": "integer",
+      "description": "Optional character cap for Exa's combined context string. Highlights are always returned.",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 200000
+    },
+    "additionalQueries": {
+      "title": "Additional deep queries",
+      "type": "array",
+      "description": "Optional query variations used by Deep search.",
+      "editor": "stringList",
+      "items": {
+        "type": "string"
+      },
+      "sectionCaption": "Deep search options"
+    },
+    "systemPrompt": {
+      "title": "System prompt",
+      "type": "string",
+      "description": "Optional system prompt for Deep search structured output. Ignored unless Search depth is Deep.",
+      "editor": "textarea",
+      "sectionCaption": "Structured output"
+    },
+    "outputSchema": {
+      "title": "Structured output schema",
+      "type": "object",
+      "description": "Optional JSON schema sent to Exa for structured output. Ignored unless Search depth is Deep.",
+      "editor": "json",
+      "prefill": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["answer", "sources"]
+      }
+    },
+    "extraRequestOptions": {
+      "title": "Extra request options",
+      "type": "object",
+      "description": "Advanced Exa API request fields to merge into the outgoing payload.",
+      "editor": "json",
+      "sectionCaption": "Advanced"
+    }
+  },
+  "required": ["query"],
+  "additionalProperties": false
+}

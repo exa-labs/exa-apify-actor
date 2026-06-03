@@ -1,0 +1,24 @@
+{
+  "actorSpecification": 1,
+  "name": "exa-search-and-contents",
+  "title": "Exa Search and Contents",
+  "description": "Search the web with Exa and return highlighted excerpts from each result, with optional Deep search and structured output.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "meta": {
+    "templateId": "python-empty",
+    "generatedBy": "Codex with GPT-5"
+  },
+  "dockerfile": "../Dockerfile",
+  "readme": "../README.md",
+  "input": "./input_schema.json",
+  "output": "./output_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json",
+    "keyValueStore": "./key_value_store_schema.json"
+  },
+  "minMemoryMbytes": 256,
+  "maxMemoryMbytes": 1024,
+  "defaultMemoryMbytes": 512,
+  "usesStandbyMode": false
+}
