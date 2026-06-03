@@ -52,7 +52,7 @@ def _build_search_payload(actor_input: dict[str, Any]) -> dict[str, Any]:
 
     max_characters = actor_input.get("maxCharacters")
     if isinstance(max_characters, int) and max_characters > 0:
-        payload["context"] = {"maxCharacters": max_characters}
+        payload["contents"]["highlights"] = {"maxCharacters": max_characters}
 
     extra_options = _non_empty_dict(actor_input.get("extraRequestOptions"))
     payload.update(extra_options)
@@ -113,7 +113,6 @@ def _normalize_search_rows(response: dict[str, Any], query: str) -> list[dict[st
         results = []
 
     structured_output = response.get("output")
-    context = response.get("context")
     rows = []
     for index, result in enumerate(results, start=1):
         raw_result = result if isinstance(result, dict) else {"value": result}
@@ -132,17 +131,15 @@ def _normalize_search_rows(response: dict[str, Any], query: str) -> list[dict[st
                 "highlightScores": raw_result.get("highlightScores") if isinstance(raw_result.get("highlightScores"), list) else None,
                 "score": raw_result.get("score") if isinstance(raw_result.get("score"), (int, float)) else None,
                 "structuredOutput": structured_output,
-                "context": context if isinstance(context, str) else None,
                 "rawResult": raw_result,
             }
         )
 
-    if not rows and (structured_output is not None or context is not None):
+    if not rows and structured_output is not None:
         rows.append(
             {
                 "query": query,
                 "structuredOutput": structured_output,
-                "context": context if isinstance(context, str) else None,
                 "rawResult": response,
             }
         )

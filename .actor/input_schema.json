@@ -48,9 +48,9 @@
       }
     },
     "maxCharacters": {
-      "title": "Max context characters",
+      "title": "Max highlight characters",
       "type": "integer",
-      "description": "Optional character cap for Exa's combined context string. Highlights are always returned.",
+      "description": "Optional character cap for each returned Exa highlight. Highlights are always returned.",
       "editor": "number",
       "minimum": 1,
       "maximum": 200000

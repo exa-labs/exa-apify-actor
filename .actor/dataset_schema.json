@@ -90,12 +90,6 @@
           "summary": "Example structured output."
         }
       },
-      "context": {
-        "type": "string",
-        "description": "LLM-ready context string returned by Exa Search.",
-        "nullable": true,
-        "example": "Example context."
-      },
       "rawResult": {
         "type": "object",
         "description": "Raw result object returned by Exa.",

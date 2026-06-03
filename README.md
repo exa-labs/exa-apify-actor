@@ -8,7 +8,7 @@ Search the web with Exa and return highlighted excerpts from each result. This A
 - Supports Auto and Deep search.
 - Returns highlights and highlight scores for each result.
 - Supports include/exclude domain filters.
-- Optionally returns Exa's combined context string with a character cap.
+- Optionally caps the length of returned highlights.
 - Optionally requests structured output from Exa when using Deep search.
 - Pushes normalized rows to the default dataset.
 - Stores the full raw Exa API response in the default key-value store as `OUTPUT`.
@@ -73,7 +73,6 @@ The default dataset contains one normalized row per result. The main fields are:
 - `highlightScores`
 - `score`
 - `structuredOutput`
-- `context`
 - `rawResult`
 
 The full response is also available at `OUTPUT` in the default key-value store.
