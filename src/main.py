@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from typing import Any
-from urllib.parse import urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from apify import Actor
+
 
 EXA_API_BASE_URL = "https://api.exa.ai"
-APIFY_API_BASE_URL = os.getenv("APIFY_API_BASE_URL", "https://api.apify.com")
+CHARGE_EVENT_NAME = "live_event"
 
 
 def _compact_strings(values: Any) -> list[str]:
@@ -36,11 +38,11 @@ def _build_search_payload(actor_input: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(query, str) or not query.strip():
         raise ValueError("The 'query' input is required.")
 
-    search_type = actor_input.get("searchType", "auto")
+    search_type = actor_input.get("searchType")
     payload = {
         "query": query.strip(),
         "type": search_type,
-        "numResults": actor_input.get("numResults", 10),
+        "numResults": actor_input.get("numResults"),
         "includeDomains": _compact_strings(actor_input.get("includeDomains")),
         "excludeDomains": _compact_strings(actor_input.get("excludeDomains")),
         "contents": {"highlights": True},
@@ -146,113 +148,49 @@ def _normalize_search_rows(response: dict[str, Any], query: str) -> list[dict[st
     return rows
 
 
-def _local_storage_dir() -> str:
-    return os.getenv("APIFY_LOCAL_STORAGE_DIR") or os.path.join(os.getcwd(), "storage")
+async def _write_outputs(rows: list[dict[str, Any]], response: dict[str, Any], summary: dict[str, Any]) -> None:
+    if rows:
+        await Actor.push_data(rows)
+
+    await Actor.set_value("OUTPUT", response)
+    await Actor.set_value("SUMMARY", summary)
 
 
-def _read_local_input() -> dict[str, Any]:
-    key = os.getenv("ACTOR_INPUT_KEY") or os.getenv("APIFY_INPUT_KEY") or "INPUT"
-    path = os.path.join(_local_storage_dir(), "key_value_stores", "default", f"{key}.json")
-    if not os.path.exists(path):
-        return {}
-    with open(path, encoding="utf-8") as file:
-        data = json.load(file)
-    return data if isinstance(data, dict) else {}
+async def main() -> None:
+    async with Actor:
+        actor_input = await Actor.get_input() or {}
+        if not isinstance(actor_input, dict):
+            raise ValueError("Actor input must be a JSON object.")
 
+        api_key = os.getenv("EXA_API_KEY")
+        if not api_key:
+            raise ValueError("EXA_API_KEY must be set as an Actor environment variable.")
 
-def _apify_token_param() -> str:
-    token = os.getenv("APIFY_TOKEN")
-    if not token:
-        raise ValueError("APIFY_TOKEN is required when running on the Apify platform.")
-    return urlencode({"token": token})
+        payload = _build_search_payload(actor_input)
+        query = payload["query"]
 
+        Actor.log.info("Calling Exa search endpoint")
+        response = await asyncio.to_thread(_call_exa, api_key, payload)
+        charge = await Actor.charge(CHARGE_EVENT_NAME)
+        rows = _normalize_search_rows(response, query)
 
-def _read_cloud_input() -> dict[str, Any]:
-    store_id = os.getenv("ACTOR_DEFAULT_KEY_VALUE_STORE_ID") or os.getenv("APIFY_DEFAULT_KEY_VALUE_STORE_ID")
-    key = os.getenv("ACTOR_INPUT_KEY") or os.getenv("APIFY_INPUT_KEY") or "INPUT"
-    if not store_id:
-        return {}
-    response = _request_json(
-        f"{APIFY_API_BASE_URL}/v2/key-value-stores/{store_id}/records/{key}?{_apify_token_param()}",
-    )
-    return response if isinstance(response, dict) else {}
-
-
-def _get_input() -> dict[str, Any]:
-    if os.getenv("APIFY_IS_AT_HOME") == "1":
-        return _read_cloud_input()
-    return _read_local_input()
-
-
-def _write_local_outputs(rows: list[dict[str, Any]], response: dict[str, Any], summary: dict[str, Any]) -> None:
-    storage_dir = _local_storage_dir()
-    dataset_dir = os.path.join(storage_dir, "datasets", "default")
-    kvs_dir = os.path.join(storage_dir, "key_value_stores", "default")
-    os.makedirs(dataset_dir, exist_ok=True)
-    os.makedirs(kvs_dir, exist_ok=True)
-
-    for index, row in enumerate(rows, start=1):
-        with open(os.path.join(dataset_dir, f"{index:09d}.json"), "w", encoding="utf-8") as file:
-            json.dump(row, file, ensure_ascii=False, indent=2)
-
-    for key, value in {"OUTPUT": response, "SUMMARY": summary}.items():
-        with open(os.path.join(kvs_dir, f"{key}.json"), "w", encoding="utf-8") as file:
-            json.dump(value, file, ensure_ascii=False, indent=2)
-
-
-def _write_cloud_outputs(rows: list[dict[str, Any]], response: dict[str, Any], summary: dict[str, Any]) -> None:
-    dataset_id = os.getenv("ACTOR_DEFAULT_DATASET_ID") or os.getenv("APIFY_DEFAULT_DATASET_ID")
-    store_id = os.getenv("ACTOR_DEFAULT_KEY_VALUE_STORE_ID") or os.getenv("APIFY_DEFAULT_KEY_VALUE_STORE_ID")
-    token_param = _apify_token_param()
-
-    if rows and dataset_id:
-        _request_json(
-            f"{APIFY_API_BASE_URL}/v2/datasets/{dataset_id}/items?{token_param}",
-            method="POST",
-            payload=rows,
-        )
-
-    if store_id:
-        for key, value in {"OUTPUT": response, "SUMMARY": summary}.items():
-            _request_json(
-                f"{APIFY_API_BASE_URL}/v2/key-value-stores/{store_id}/records/{key}?{token_param}",
-                method="PUT",
-                payload=value,
-            )
-
-
-def _write_outputs(rows: list[dict[str, Any]], response: dict[str, Any], summary: dict[str, Any]) -> None:
-    if os.getenv("APIFY_IS_AT_HOME") == "1":
-        _write_cloud_outputs(rows, response, summary)
-    else:
-        _write_local_outputs(rows, response, summary)
-
-
-def main() -> None:
-    actor_input = _get_input()
-    api_key = os.getenv("EXA_API_KEY")
-    if not api_key:
-        raise ValueError("EXA_API_KEY must be set as an Actor environment variable.")
-
-    payload = _build_search_payload(actor_input)
-    query = payload["query"]
-
-    print("Calling Exa search endpoint")
-    response = _call_exa(api_key, payload)
-    rows = _normalize_search_rows(response, query)
-
-    summary = {
-        "operation": "search",
-        "endpoint": "search",
-        "requestId": response.get("requestId"),
-        "resultCount": len(rows),
-        "costDollars": response.get("costDollars"),
-        "requestedSearchType": payload.get("type"),
-        "resolvedSearchType": response.get("searchType"),
-    }
-    _write_outputs(rows, response, summary)
-    print(f"Stored {len(rows)} normalized row(s)")
+        summary = {
+            "operation": "search",
+            "endpoint": "search",
+            "requestId": response.get("requestId"),
+            "resultCount": len(rows),
+            "costDollars": response.get("costDollars"),
+            "requestedSearchType": payload.get("type"),
+            "resolvedSearchType": response.get("searchType"),
+            "chargeEvent": {
+                "eventName": CHARGE_EVENT_NAME,
+                "chargedCount": charge.charged_count,
+                "eventChargeLimitReached": charge.event_charge_limit_reached,
+            },
+        }
+        await _write_outputs(rows, response, summary)
+        Actor.log.info("Stored %s normalized row(s)", len(rows))
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

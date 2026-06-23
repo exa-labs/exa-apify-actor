@@ -68,3 +68,13 @@ Each dataset row is one Exa result:
 For Deep structured output, `structuredOutput` is attached to result rows. The raw response is stored as `OUTPUT`; run metadata is stored as `SUMMARY`.
 
 This Actor uses managed Exa API access. Set `EXA_API_KEY` as an Apify environment variable or secret.
+
+## Local development
+
+Install the Apify CLI, set `EXA_API_KEY`, and run:
+
+```bash
+apify run
+```
+
+The Actor uses the Apify SDK for input, dataset, key-value store, and pay-per-event billing. Each successful live Exa request calls `Actor.charge("live_event")`; configure the Actor's pay-per-event pricing with a matching `live_event` charge event.
