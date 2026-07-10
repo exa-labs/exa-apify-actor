@@ -12,9 +12,10 @@ from apify import Actor
 
 EXA_API_BASE_URL = "https://api.exa.ai"
 # Billing is a straight pass-through of Exa's own charge. Exa returns the exact
-# cost of each request in `costDollars.total`, already reflecting its pricing
-# (10 results included, per-result charges beyond 10, contents/summaries, and the
-# $12/1k deep-search tier). We bill that amount in $0.00001 units, so the Apify
+# cost of each request in `costDollars.total`, already reflecting its pricing:
+# the first 10 results and their contents (highlights, text, or summary) are
+# included in the base price, results beyond 10 add to the cost, and deep search
+# uses the $12/1k tier. We bill that amount in $0.00001 units, so the Apify
 # pay-per-event price for CHARGE_EVENT_NAME must be set to $0.00001.
 CHARGE_EVENT_NAME = "exa_api_cost"
 CHARGE_UNIT_DOLLARS = 0.00001

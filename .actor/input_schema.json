@@ -23,11 +23,11 @@
     "numResults": {
       "title": "Number of results",
       "type": "integer",
-      "description": "Maximum number of search results to return.",
+      "description": "Maximum number of search results to return (1-20). The first 10 results and their contents are included in the base price; results beyond 10 add to the cost.",
       "editor": "number",
       "default": 10,
       "minimum": 1,
-      "maximum": 100
+      "maximum": 20
     },
     "includeDomains": {
       "title": "Include domains",

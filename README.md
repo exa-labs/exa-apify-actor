@@ -79,7 +79,7 @@ apify run
 
 ## Billing
 
-The Actor uses the Apify SDK for input, dataset, key-value store, and pay-per-event billing. Billing is a straight pass-through of Exa's own cost: every Exa response includes `costDollars.total`, which already reflects Exa's pricing (10 results included, then per-result charges beyond 10, contents/summaries, and the $12/1k deep-search tier). The Actor bills that exact amount by charging the `exa_api_cost` event once per `$0.00001` of Exa cost.
+The Actor uses the Apify SDK for input, dataset, key-value store, and pay-per-event billing. Billing is a straight pass-through of Exa's own cost: every Exa response includes `costDollars.total`, which already reflects Exa's pricing. The first 10 results and their contents (highlights, text, or summary) are included in the base price; results beyond 10 add to the cost, and deep search uses the $12/1k tier. The Actor bills that exact amount by charging the `exa_api_cost` event once per `$0.00001` of Exa cost.
 
 To configure pay-per-event pricing, define a single charge event:
 
