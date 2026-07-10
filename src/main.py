@@ -11,7 +11,24 @@ from apify import Actor
 
 
 EXA_API_BASE_URL = "https://api.exa.ai"
-CHARGE_EVENT_NAME = "live_event"
+# Billing is a straight pass-through of Exa's own charge. Exa returns the exact
+# cost of each request in `costDollars.total`, already reflecting its pricing
+# (10 results included, per-result charges beyond 10, contents/summaries, and the
+# $12/1k deep-search tier). We bill that amount in $0.00001 units, so the Apify
+# pay-per-event price for CHARGE_EVENT_NAME must be set to $0.00001.
+CHARGE_EVENT_NAME = "exa_api_cost"
+CHARGE_UNIT_DOLLARS = 0.00001
+
+
+def _cost_units(response: dict[str, Any]) -> int:
+    """Exa's request cost, expressed as a count of CHARGE_UNIT_DOLLARS units."""
+    cost = response.get("costDollars")
+    total = cost.get("total") if isinstance(cost, dict) else cost
+    try:
+        total = float(total)
+    except (TypeError, ValueError):
+        total = 0.0
+    return max(1, round(total / CHARGE_UNIT_DOLLARS))
 
 
 def _compact_strings(values: Any) -> list[str]:
@@ -171,7 +188,7 @@ async def main() -> None:
 
         Actor.log.info("Calling Exa search endpoint")
         response = await asyncio.to_thread(_call_exa, api_key, payload)
-        charge = await Actor.charge(CHARGE_EVENT_NAME)
+        charge = await Actor.charge(CHARGE_EVENT_NAME, count=_cost_units(response))
         rows = _normalize_search_rows(response, query)
 
         summary = {
